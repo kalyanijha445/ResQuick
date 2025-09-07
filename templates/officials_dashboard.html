@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Officials Dashboard | ResQuick</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-blue: #3B72D3;
+      --secondary-blue: #6c5ce7;
+      --light-grey: #f5f6fa;
+      --medium-grey: #dfe6e9;
+      --dark-grey: #566573;
+      --text-dark: #2c3e50;
+      --card-bg: white;
+      --shadow-color: rgba(110, 126, 143, 0.2);
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--light-grey);
+      margin: 0;
+      padding: 25px;
+      color: var(--text-dark);
+    }
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding: 20px;
+      background: var(--secondary-blue);
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    }
+    header h2 { margin: 0; }
+
+    /* ### MODIFIED STYLES FOR USER MENU ### */
+    .user-menu {
+        position: relative; /* Anchor for the dropdown */
+    }
+    .user-icon {
+        font-size: 30px;
+        cursor: pointer;
+        padding: 5px;
+        color: rgba(255, 255, 255, 0.9);
+        transition: color 0.2s ease;
+    }
+    .user-icon:hover {
+      color: white;
+    }
+    .user-menu-content {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 110%; 
+        right: 0;
+        background-color: var(--card-bg);
+        min-width: 230px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border-radius: 10px;
+        z-index: 10;
+        overflow: hidden;
+        padding: 8px 0;
+        border: 1px solid var(--medium-grey);
+    }
+    /* New class 'show' to be toggled by JavaScript */
+    .user-menu-content.show {
+        display: block; 
+    }
+    .user-info {
+        padding: 12px 16px;
+        color: var(--text-dark);
+        font-size: 14px;
+        border-bottom: 1px solid var(--medium-grey);
+        margin-bottom: 5px;
+    }
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        text-decoration: none;
+        color: var(--dark-grey);
+        font-size: 15px;
+        font-weight: 500;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .menu-item:hover {
+        background-color: var(--light-grey);
+        color: var(--primary-blue);
+    }
+    .menu-item i {
+        width: 20px;
+        text-align: center;
+        color: #90a4ae;
+    }
+    .menu-item:hover i {
+      color: var(--primary-blue);
+    }
+    .logout-btn-menu {
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .table-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px var(--shadow-color);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--medium-grey);
+      vertical-align: middle;
+    }
+    th {
+      background: #fcfcfd;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--dark-grey);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #f9fafb; }
+    
+    .file-link { color: var(--primary-blue); text-decoration: none; font-weight: 500; }
+    .file-link:hover { text-decoration: underline; }
+
+    .analyze-btn {
+        background: var(--primary-blue); color: white; border: none; padding: 8px 12px;
+        font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer;
+        transition: all 0.3s ease; min-width: 120px; text-align: center;
+    }
+    .analyze-btn:hover:not(:disabled) { background: #2f60b7; transform: translateY(-1px); }
+    .analyze-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+    .status-badge {
+        padding: 4px 10px; border-radius: 15px; font-weight: 500; font-size: 13px;
+    }
+    .status-pending { background-color: #fef3c7; color: #92400e; }
+    .status-reviewed { background-color: #dbeafe; color: #1e40af; }
+    .spinner-border-sm {
+      display: inline-block; width: 1em; height: 1em; vertical-align: text-bottom;
+      border: .2em solid currentColor; border-right-color: transparent; border-radius: 50%;
+      animation: spinner-border .75s linear infinite;
+    }
+    @keyframes spinner-border { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+  <header>
+    <div>
+        <h2>Officials Dashboard</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.8;">Review and process applications</p>
+    </div>
+    <div class="user-menu">
+        <i class="fa-solid fa-user-circle user-icon" id="user-menu-trigger"></i>
+        <div class="user-menu-content" id="user-menu-content">
+            <div class="user-info">Logged in as: <b>{{ official_id }}</b></div>
+            <a href="{{ url_for('procedure_dashboard') }}" class="menu-item">
+                <i class="fa-solid fa-hands-helping"></i> Help Someone
+            </a>
+            <form method="GET" action="/logout" style="margin:0;">
+                <button type="submit" class="menu-item logout-btn-menu">
+                  <i class="fa-solid fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+  </header>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th> <th>User Name</th> <th>District</th> <th>Date/Time</th>
+          <th>File</th> <th>Status</th> <th>Damage Assessed</th>
+          <th>Est. Compensation</th> <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in apps %}
+        <tr id="app-row-{{ app.id }}">
+          <td>RQ-{{ '%05d' % app['id'] }}</td>
+          <td>{{ app.name }}</td>
+          <td>{{ app.district }}</td>
+          <td>{{ app.datetime }}</td>
+          <td>
+            {% if app.file_path %}
+              {% set first_file = app.file_path.split(',')[0] %}
+              <a href="/{{ first_file }}" target="_blank" class="file-link">View File</a>
+            {% else %}
+              <span>No File</span>
+            {% endif %}
+          </td>
+          <td id="status-{{ app.id }}">
+            <span class="status-badge status-{{ app.status | lower }}">{{ app.status }}</span>
+          </td>
+          <td id="damage-{{ app.id }}">
+            {% if app.damage_percentage is not none %}
+              {{ "%.2f"|format(app.damage_percentage) }}%
+            {% else %} N/A {% endif %}
+          </td>
+          <td id="compensation-{{ app.id }}">
+            {% if app.compensation_amount is not none %}
+              ₹ {{ "%.2f"|format(app.compensation_amount) }}
+            {% else %} N/A {% endif %}
+          </td>
+          <td>
+            {% if app.file_path and app.status == 'Pending' %}
+            <button class="analyze-btn" data-id="{{ app.id }}">Analyze Damage</button>
+            {% elif app.status != 'Pending' %}
+              <button class="analyze-btn" disabled>Analyzed</button>
+            {% else %}
+              <span style="color: #90a4ae;">No Image</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ### JAVASCRIPT FOR CLICKABLE USER MENU ###
+  const userMenuTrigger = document.getElementById('user-menu-trigger');
+  const userMenuContent = document.getElementById('user-menu-content');
+
+  userMenuTrigger.addEventListener('click', function(event) {
+    // Toggles the 'show' class to display or hide the menu
+    userMenuContent.classList.toggle('show');
+    // Prevents the window click event from firing immediately
+    event.stopPropagation();
+  });
+
+  // Add an event listener to the whole window to close the menu if clicking outside
+  window.addEventListener('click', function(event) {
+    if (userMenuContent.classList.contains('show') && !userMenuTrigger.contains(event.target)) {
+      userMenuContent.classList.remove('show');
+    }
+  });
+
+
+  // Script for the 'Analyze' button functionality
+  const analyzeButtons = document.querySelectorAll('.analyze-btn');
+  analyzeButtons.forEach(button => {
+    if (button.disabled) return; 
+
+    button.addEventListener('click', function() {
+      const appId = this.dataset.id;
+      const originalButtonText = this.innerHTML;
+
+      this.disabled = true;
+      this.innerHTML = `<span class="spinner-border-sm"></span> Analyzing...`;
+
+      fetch(`/analyze_application/${appId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          document.getElementById(`damage-${appId}`).textContent = data.damage;
+          document.getElementById(`compensation-${appId}`).textContent = data.compensation;
+          const statusCell = document.getElementById(`status-${appId}`);
+          statusCell.innerHTML = `<span class="status-badge status-reviewed">Reviewed</span>`;
+          alert(`Analysis for Application #RQ-${String(appId).padStart(5,'0')} complete!`);
+          this.innerHTML = 'Analyzed';
+        } else {
+          alert(`Error: ${data.message}`);
+          this.disabled = false;
+          this.innerHTML = originalButtonText;
+        }
+      })
+      .catch(error => {
+        console.error('Fetch Error:', error);
+        alert('An error occurred: ' + (error.message || 'Please check the console.'));
+        this.disabled = false;
+        this.innerHTML = originalButtonText;
+      });
+    });
+  });
+});
+</script>
+
+</body>
+</html>

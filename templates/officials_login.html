@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Login | ResQuick</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-blue: #3B72D3;
+      --primary-blue-light: #5D9CEC;
+      --text-dark: #2c3e50;
+      --text-medium: #566573;
+      --text-light: #90a4ae;
+      --background-gradient: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(209, 213, 219, 0.7);
+      --shadow-color: rgba(110, 126, 143, 0.2);
+      --error-bg: #ffebee;
+      --error-text: #c62828;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background-gradient);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text-dark);
+      padding: 20px;
+    }
+
+    .login-container {
+      position: relative; /* ### IMPORTANT for positioning the back arrow ### */
+      width: 90%;
+      max-width: 400px;
+      padding: 40px 35px;
+      background: var(--card-bg);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 10px 35px var(--shadow-color);
+      border-radius: 20px;
+      text-align: center;
+      animation: fadeInSlideUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+    
+    /* ### NEW STYLE FOR TOP-LEFT BACK ARROW ### */
+    .back-btn {
+        position: absolute;
+        top: 25px;
+        left: 25px;
+        font-size: 22px;
+        color: var(--text-light);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+        color: var(--text-dark);
+        transform: scale(1.15);
+    }
+
+    @keyframes fadeInSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .login-header h2 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      padding-top: 15px; /* Add some space below the back arrow */
+      color: var(--text-dark);
+    }
+    .login-header p {
+      font-size: 15px;
+      color: var(--text-medium);
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .input-group .icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #90a4ae;
+      font-size: 16px;
+      transition: color 0.3s ease;
+    }
+    .input-field {
+      width: 100%;
+      padding: 14px 45px;
+      border-radius: 12px;
+      border: 1px solid #dcdfe3;
+      background-color: #fcfcfd;
+      font-size: 16px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+    }
+    .input-field::placeholder { color: #90a4ae; }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(59, 114, 211, 0.2);
+    }
+    .input-field:focus + .icon {
+      color: var(--primary-blue);
+    }
+    .toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90a4ae;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    .toggle-password:hover { color: var(--text-medium); }
+    .input-field:focus ~ .toggle-password { color: var(--primary-blue); }
+
+    .login-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-top: 15px;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .login-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(93, 156, 236, 0.3), 0 8px 8px rgba(93, 156, 236, 0.22);
+    }
+
+    .flash-error {
+        padding: 12px 15px;
+        border-radius: 8px;
+        background-color: var(--error-bg);
+        color: var(--error-text);
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 20px;
+        border: 1px solid var(--error-text);
+        animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    
+    <!-- ### NEW Back Arrow ### -->
+    <a href="{{ url_for('login_option') }}" class="back-btn" title="Go Back">
+      <i class="fa-solid fa-arrow-left"></i>
+    </a>
+    
+    <div class="login-header">
+      <h2>Officials Portal</h2>
+      <p>Please enter your credentials to log in.</p>
+    </div>
+
+    <!-- Flask Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == 'error' %}
+            <div class="flash-error">{{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('officials_login') }}">
+      <div class="input-group">
+        <input type="text" name="official_id" placeholder="Official ID" class="input-field" required>
+        <i class="fas fa-id-card icon"></i>
+      </div>
+      <div class="input-group">
+        <input id="password" type="password" name="password" placeholder="Password" class="input-field" required>
+        <i class="fas fa-lock icon"></i>
+        <span id="toggle-password" class="toggle-password">
+            <i class="fa-solid fa-eye"></i>
+        </span>
+      </div>
+      <button type="submit" class="login-btn">
+        Log In
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+      </button>
+    </form>
+  </div>
+  
+  <script>
+    const passwordInput = document.getElementById('password');
+    const togglePasswordButton = document.getElementById('toggle-password');
+    const toggleIcon = togglePasswordButton.querySelector('i');
+
+    togglePasswordButton.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        if (type === 'password') {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        } else {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        }
+    });
+  </script>
+
+</body>
+</html>

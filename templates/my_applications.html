@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Applications | ResQuick</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --primary-blue: #3B72D3;
+      --success-green: #2ecc71;
+      --error-red: #e74c3c;
+      --pending-orange: #f39c12;
+      --reviewed-blue: #3498db; /* Color for 'Reviewed' status */
+      --text-dark: #2c3e50;
+      --text-medium: #566573;
+      --text-light: #90a4ae;
+      --background-gradient: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      --card-bg: rgba(255, 255, 255, 0.6);
+      --card-border: rgba(209, 213, 219, 0.7);
+      --shadow-color: rgba(110, 126, 143, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background-gradient);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* --- HEADER (Reused from other pages) --- */
+    header {
+      background: var(--card-bg);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0 40px;
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .nav-left, .nav-right { display: flex; align-items: center; gap: 15px; flex: 1; }
+    .nav-right { justify-content: flex-end; }
+    .page-title h3 { font-size: 22px; color: var(--text-dark); }
+    .nav-btn { background: transparent; border: none; color: var(--text-medium);
+        font-size: 24px; cursor: pointer; padding: 10px; border-radius: 50%;
+        transition: all 0.3s ease; position: relative; display: grid; place-items: center; }
+    .back-btn { font-size: 20px; text-decoration: none; }
+    .nav-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--text-dark); }
+    .dropdown-menu { position: absolute; top: 60px; background: white; border-radius: 12px;
+        box-shadow: 0 8px 32px 0 var(--shadow-color); border: 1px solid var(--card-border);
+        opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.95);
+        transition: all 0.2s ease-in-out; z-index: 1001; overflow: hidden; }
+    .dropdown-menu.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+    #user-menu { right: 15px; width: 280px; }
+    .dropdown-menu ul { list-style: none; }
+    .dropdown-menu ul li a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; text-decoration: none;
+      color: var(--text-medium); font-weight: 500; font-size: 15px; transition: all 0.2s ease; }
+    .dropdown-menu ul li a:hover { background-color: #f5f7fa; color: var(--primary-blue); }
+    .user-info-header { padding: 15px 20px; border-bottom: 1px solid #e0e0e0; }
+    .user-info-header h4 { margin: 0; color: var(--text-dark); }
+    .user-info-header p { margin: 0; color: var(--text-light); font-size: 13px; }
+
+    /* --- MAIN CONTENT & CARDS --- */
+    .main-container { padding: 40px; max-width: 1200px; margin: auto; }
+    .applications-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 30px;
+    }
+    .app-card {
+      background: var(--card-bg); 
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border); box-shadow: 0 8px 24px 0 var(--shadow-color);
+      border-radius: 20px; padding: 25px; display: flex; flex-direction: column; gap: 15px;
+      transition: all 0.3s ease; opacity: 1;
+    }
+    .app-card.deleting { transform: scale(0.9); opacity: 0; }
+    .app-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px 0 var(--shadow-color); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; }
+    .card-header h4 { font-size: 14px; font-weight: 600; color: var(--primary-blue); background: rgba(59, 114, 211, 0.1); padding: 5px 10px; border-radius: 8px; }
+    .card-header .date { font-size: 13px; color: var(--text-medium); }
+    .card-body h3 { font-size: 18px; margin-bottom: 5px; color: var(--text-dark); }
+    .card-body p { font-size: 14px; color: var(--text-medium); }
+    
+    /* --- NEW STYLES for ANALYSIS SECTION ON CARD --- */
+    .card-analysis {
+      border-top: 1px dashed var(--card-border);
+      padding-top: 15px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      font-size: 13px;
+    }
+    .analysis-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-medium);
+    }
+    .analysis-item i {
+        font-size: 16px;
+        margin-bottom: 2px;
+        color: var(--primary-blue);
+    }
+    .analysis-value {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-dark);
+    }
+
+    /* --- Status Badge Styling (Added 'Reviewed') --- */
+    .status-badge { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 30px; text-align: center; }
+    .status-pending { background-color: rgba(243, 156, 18, 0.15); color: #b97d10; }
+    .status-reviewed { background-color: rgba(52, 152, 219, 0.15); color: var(--reviewed-blue); }
+    .status-approved { background-color: rgba(46, 204, 113, 0.15); color: #208e52; }
+    .status-rejected { background-color: rgba(231, 76, 60, 0.15); color: #b73425; }
+
+    .card-footer { border-top: 1px solid var(--card-border); padding-top: 15px; margin-top: auto; display: flex; gap: 10px; }
+    .action-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+    .view-details-btn { background: var(--primary-blue); color: white; }
+    .view-details-btn:hover { background: #2f60b7; transform: translateY(-2px); }
+    .delete-btn { background-color: rgba(231, 76, 60, 0.15); color: var(--error-red); }
+    .delete-btn:hover { background-color: rgba(231, 76, 60, 0.25); transform: translateY(-2px); }
+    
+    .analyze-btn { background: var(--success-green); color: white; }
+    .analyze-btn:hover { background: #27ae60; transform: translateY(-2px); }
+    .analyze-btn:disabled { background-color: var(--text-light); transform: none; cursor: not-allowed; opacity: 0.7;}
+
+
+    .no-apps-message { text-align: center; padding: 50px; font-size: 18px; color: var(--text-medium); grid-column: 1 / -1;}
+
+    /* --- DETAILS & CONFIRM MODALS --- */
+    .modal-overlay, .confirm-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
+      display: none; justify-content: center; align-items: center; z-index: 2000;
+      -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .modal-content, .confirm-modal-content {
+      background: #fdfdfd; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      animation: slideUp 0.4s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal-content { width: 90%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-header { padding: 20px 25px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 20px; }
+    .close-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: var(--text-medium); }
+    .modal-body { padding: 25px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .modal-section h4 { font-size: 16px; color: var(--primary-blue); margin-bottom: 10px; border-bottom: 2px solid rgba(59, 114, 211, 0.2); padding-bottom: 5px; }
+    .details-grid { display: grid; grid-template-columns: 130px 1fr; gap: 8px; font-size: 14px; }
+    .details-grid strong { color: var(--text-medium); }
+    #modal-map { height: 200px; width: 100%; border-radius: 12px; z-index: 1; }
+    .images-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .images-container img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--card-border); }
+    .modal-footer { padding: 20px 25px; border-top: 1px solid #e0e0e0; text-align: right; }
+    .download-pdf-btn { text-decoration: none; background: var(--success-green); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 500; }
+    
+    .confirm-modal-content { padding: 30px; width: 90%; max-width: 400px; text-align: center; }
+    .confirm-modal-content h3 { margin-bottom: 10px; font-size: 20px; }
+    .confirm-modal-content p { margin-bottom: 25px; color: var(--text-medium); }
+    .confirm-modal-actions { display: flex; gap: 15px; justify-content: center; }
+    .confirm-modal-actions button { flex-grow: 1; padding: 12px; font-size: 15px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; }
+    #confirm-cancel-btn { background-color: #f0f2f5; color: var(--text-dark); border: 1px solid #dcdfe3; }
+    #confirm-delete-btn { background-color: var(--error-red); color: white; }
+    
+    @media (max-width: 900px) { .applications-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
+    @media (max-width: 768px) {
+      header { padding: 0 20px; }
+      .page-title { display: none; }
+      .main-container { padding: 20px; }
+      .modal-body { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-left">
+      <a href="{{ url_for('user_dashboard') }}" class="nav-btn back-btn" title="Back to Dashboard">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </div>
+    <div class="page-title"><h3>My Applications</h3></div>
+    <div class="nav-right">
+      <button class="nav-btn" id="user-btn" title="Profile"><i class="fa-solid fa-user"></i></button>
+      <div class="dropdown-menu" id="user-menu">
+        <div class="user-info-header"><h4>{{ name or 'User Name' }}</h4><p>Aadhaar: {{ aadhaar or '0000 0000 0000' }}</p></div>
+        <ul><li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-sign-out-alt"></i> Logout</a></li></ul>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="applications-grid">
+      {% for app in apps %}
+        <div class="app-card" data-app-id="{{ app['id'] }}">
+          <div class="card-header">
+            <h4>RQ-{{ '%05d' % app['id'] }}</h4>
+            <span class="date">{{ app['datetime'] }}</span>
+          </div>
+          <div class="card-status">
+              <div class="status-badge status-{{ app['status'] | lower }}">
+                  {{ app['status'] }}
+              </div>
+          </div>
+          <div class="card-body">
+            <h3>Incident Location</h3>
+            <p><i class="fa-solid fa-map-marker-alt"></i> {{ app['block'] }}, {{ app['district'] }}</p>
+          </div>
+          
+          <!-- ### NEW: AI ANALYSIS SECTION ON CARD ### -->
+          {% if app.damage_percentage is not none %}
+          <div class="card-analysis">
+              <div class="analysis-item">
+                  <i class="fa-solid fa-house-damage"></i>
+                  <span>Damage Assessed</span>
+                  <span class="analysis-value">{{ "%.2f"|format(app.damage_percentage) }}%</span>
+              </div>
+              <div class="analysis-item">
+                  <i class="fa-solid fa-coins"></i>
+                  <span>Est. Compensation</span>
+                  <span class="analysis-value">₹ {{ "%.2f"|format(app.compensation_amount) }}</span>
+              </div>
+          </div>
+          {% endif %}
+          
+          <div class="card-footer">
+            <button class="action-btn view-details-btn" 
+              data-id="{{ app['id'] }}" 
+              data-name="{{ app['name'] }}" 
+              data-gram-panchayat="{{ app['gram_panchayat'] }}" 
+              data-block="{{ app['block'] }}" 
+              data-police-station="{{ app['police_station'] }}" 
+              data-district="{{ app['district'] }}" 
+              data-state="{{ app['state'] }}" 
+              data-lat="{{ app['latitude'] }}" 
+              data-long="{{ app['longitude'] }}" 
+              data-datetime="{{ app['datetime'] }}" 
+              data-status="{{ app['status'] }}" 
+              data-files="{{ app['file_path'] or '' }}" 
+              data-damage-percentage="{{ app['damage_percentage'] or '' }}" 
+              data-compensation-amount="{{ app['compensation_amount'] or '' }}" 
+              data-reasoning="{{ app['reasoning'] or '' }}" 
+              data-recommendations="{{ app['recommendations'] or '' }}">View Details</button>
+        
+            <button class="action-btn delete-btn" data-id="{{ app['id'] }}"> 
+                <i class="fa-solid fa-trash-alt"></i> Delete 
+            </button>
+        
+            {% if app['status'] == 'Pending' %}
+            <button class="action-btn analyze-btn" data-id="{{ app['id'] }}"> 
+                <i class="fa-solid fa-magnifying-glass"></i> Analyze 
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <p class="no-apps-message">You have not submitted any applications yet.</p>
+      {% endfor %}
+    </div>
+  </main>
+  
+  <!-- Details Modal -->
+  <div class="modal-overlay" id="details-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Application Details</h2>
+        <button class="close-btn" id="close-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h4><i class="fa-solid fa-user"></i> Applicant Info</h4>
+          <div class="details-grid">
+            <strong>Name:</strong> <span id="modal-name"></span>
+            <strong>Gram Panchayat:</strong> <span id="modal-gram-panchayat"></span>
+            <strong>Block:</strong> <span id="modal-block"></span>
+            <strong>Police Station:</strong> <span id="modal-police-station"></span>
+            <strong>District:</strong> <span id="modal-district"></span>
+            <strong>State:</strong> <span id="modal-state"></span>
+            <strong>Submitted:</strong> <span id="modal-datetime"></span>
+            <strong>Status:</strong> <span id="modal-status"></span>
+          </div>
+        </div>
+        
+        <!-- AI Analysis Section -->
+        <div class="modal-section" id="modal-analysis-section" style="display: none;">
+          <h4><i class="fa-solid fa-robot"></i> AI Damage Assessment</h4>
+          <div class="details-grid">
+              <strong>Damage Percentage:</strong> <span id="modal-damage-percentage"></span>
+              <strong>Est. Compensation:</strong> <span id="modal-compensation-amount"></span>
+              <strong>Reasoning:</strong> <span id="modal-reasoning"></span>
+              <strong>Recommendations:</strong> <span id="modal-recommendations"></span>
+          </div>
+        </div>
+        
+        <div class="modal-section">
+            <h4><i class="fa-solid fa-map-marker-alt"></i> Captured Location</h4>
+            <div id="modal-map"></div>
+        </div>
+        <div class="modal-section" style="grid-column: 1 / -1;">
+          <h4><i class="fa-solid fa-paperclip"></i> Attached Evidence</h4>
+          <div class="images-container" id="modal-images"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" id="modal-download-btn" class="download-pdf-btn" target="_blank"><i class="fa-solid fa-file-pdf"></i> Download Receipt (PDF)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="confirm-modal-overlay" id="confirm-modal">
+      <div class="confirm-modal-content">
+          <h3>Confirm Deletion</h3>
+          <p id="confirm-text">Are you sure you want to delete this application?</p>
+          <div class="confirm-modal-actions">
+              <button id="confirm-cancel-btn">Cancel</button>
+              <button id="confirm-delete-btn">Delete</button>
+          </div>
+      </div>
+  </div>
+
+
+  <script>
+    // --- Interactive Dropdown Menu ---
+    const userBtn = document.getElementById('user-btn'), userMenu = document.getElementById('user-menu');
+    userBtn.addEventListener('click', e => { e.stopPropagation(); userMenu.classList.toggle('active'); });
+    document.addEventListener('click', () => { userMenu.classList.remove('active'); });
+
+    // --- Modal Logic ---
+    const detailsModal = document.getElementById('details-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+    const applicationsGrid = document.querySelector('.applications-grid');
+    let detailMap = null; // To hold the map instance
+    let appToDeleteId = null; // To hold which app ID to delete
+
+    const populateModal = (data) => {
+        const appIdFormatted = `RQ-${String(data.id).padStart(5, '0')}`;
+        document.getElementById('modal-title').textContent = `Application ${appIdFormatted}`;
+        document.getElementById('modal-name').textContent = data.name;
+        document.getElementById('modal-gram-panchayat').textContent = data.gramPanchayat;
+        document.getElementById('modal-block').textContent = data.block;
+        document.getElementById('modal-police-station').textContent = data.policeStation;
+        document.getElementById('modal-district').textContent = data.district;
+        document.getElementById('modal-state').textContent = data.state;
+        document.getElementById('modal-datetime').textContent = data.datetime;
+        document.getElementById('modal-status').innerHTML = `<span class="status-badge status-${data.status.toLowerCase()}">${data.status}</span>`;
+        document.getElementById('modal-download-btn').href = `/download_application/${data.id}`;
+
+        const analysisSection = document.getElementById('modal-analysis-section');
+        const damageEl = document.getElementById('modal-damage-percentage');
+        const compensationEl = document.getElementById('modal-compensation-amount');
+        const reasoningEl = document.getElementById('modal-reasoning');
+        const recommendationsEl = document.getElementById('modal-recommendations');
+        
+        const damagePercentage = data.damagePercentage;
+        const compensationAmount = data.compensationAmount;
+        const reasoning = data.reasoning;
+        const recommendations = data.recommendations;
+
+        if (damagePercentage && damagePercentage !== '') {
+          damageEl.textContent = `${parseFloat(damagePercentage).toFixed(2)}%`;
+          
+          const formattedCompensation = parseFloat(compensationAmount).toLocaleString('en-IN', {
+              style: 'currency',
+              currency: 'INR',
+              minimumFractionDigits: 2
+          });
+          compensationEl.textContent = formattedCompensation;
+          
+          reasoningEl.textContent = reasoning || 'N/A';
+          recommendationsEl.textContent = recommendations || 'N/A';
+          
+          analysisSection.style.display = 'block';
+        } else {
+          analysisSection.style.display = 'none';
+          damageEl.textContent = '';
+          compensationEl.textContent = '';
+          reasoningEl.textContent = '';
+          recommendationsEl.textContent = '';
+        }
+
+        const imagesContainer = document.getElementById('modal-images');
+        imagesContainer.innerHTML = '';
+        if (data.files) {
+            const filePaths = data.files.split(',');
+            if (filePaths.length > 0 && filePaths[0].trim() !== '') {
+              filePaths.forEach(path => {
+                const normalizedPath = path.trim().replace(/\\/g, '/');
+                imagesContainer.innerHTML += `<img src="/${normalizedPath}" alt="Evidence">`;
+              });
+            } else {
+               imagesContainer.innerHTML = '<p>No evidence was attached.</p>';
+            }
+        } else {
+            imagesContainer.innerHTML = '<p>No evidence was attached.</p>';
+        }
+
+        const lat = parseFloat(data.lat);
+        const long = parseFloat(data.long);
+        if (!isNaN(lat) && !isNaN(long)) {
+          const latLng = [lat, long];
+          if (!detailMap) {
+              detailMap = L.map('modal-map').setView(latLng, 15);
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(detailMap);
+          } else {
+              detailMap.setView(latLng, 15);
+          }
+          
+          detailMap.eachLayer(layer => { if (layer instanceof L.Marker) detailMap.removeLayer(layer); });
+          L.marker(latLng).addTo(detailMap).bindPopup("Incident Location").openPopup();
+          
+          setTimeout(() => detailMap.invalidateSize(), 10);
+        } else {
+          document.getElementById('modal-map').innerHTML = '<p style="text-align: center; padding-top: 20px;">Location data not available.</p>';
+        }
+    };
+
+    applicationsGrid.addEventListener('click', (e) => {
+        const viewBtn = e.target.closest('.view-details-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+
+        if (viewBtn) {
+            // The spread syntax {...} automatically collects all data attributes
+            const data = { ...viewBtn.dataset };
+            populateModal(data);
+            detailsModal.style.display = 'flex';
+        }
+
+        if (deleteBtn) {
+            appToDeleteId = deleteBtn.dataset.id;
+            const appIdFormatted = `RQ-${String(appToDeleteId).padStart(5, '0')}`;
+            document.getElementById('confirm-text').textContent = `Are you sure you want to permanently delete application ${appIdFormatted}?`;
+            confirmModal.style.display = 'flex';
+        }
+    });
+    
+    // --- NEW JAVASCRIPT FOR ANALYZE BUTTON ---
+    applicationsGrid.addEventListener('click', async (e) => {
+        const analyzeBtn = e.target.closest('.analyze-btn');
+        if (!analyzeBtn) return;
+
+        const appId = analyzeBtn.dataset.id;
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = 'Analyzing...';
+
+        try {
+            const response = await fetch(`/analyze_application/${appId}`, {
+                method: 'POST'
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Analysis completed! Refresh to see updated data.');
+                window.location.reload();
+            } else {
+                alert('Analysis failed: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Analysis error:', error);
+            alert('An error occurred. Please try again.');
+        } finally {
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyze';
+        }
+    });
+
+    // --- Close Modal Logic ---
+    const closeDetailsModal = () => { detailsModal.style.display = 'none'; };
+    const closeConfirmModal = () => { confirmModal.style.display = 'none'; appToDeleteId = null; };
+
+    closeModalBtn.addEventListener('click', closeDetailsModal);
+    detailsModal.addEventListener('click', (e) => { if (e.target === detailsModal) closeDetailsModal(); });
+
+    confirmCancelBtn.addEventListener('click', closeConfirmModal);
+    confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) closeConfirmModal(); });
+
+    // --- Delete Functionality (unchanged) ---
+    confirmDeleteBtn.addEventListener('click', async () => {
+      if (!appToDeleteId) return;
+
+      try {
+        const response = await fetch(`/delete_application/${appToDeleteId}`, {
+          method: 'POST',
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          const cardToDelete = document.querySelector(`.app-card[data-app-id="${appToDeleteId}"]`);
+          if (cardToDelete) {
+            cardToDelete.classList.add('deleting');
+            cardToDelete.addEventListener('transitionend', () => cardToDelete.remove());
+          }
+          closeConfirmModal();
+        } else {
+          alert('Error: ' + result.message);
+          closeConfirmModal();
+        }
+      } catch (error) {
+        alert('An error occurred. Please try again.');
+        console.error('Delete error:', error);
+        closeConfirmModal();
+      }
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | ResQuick</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --primary-blue: #3B72D3;
+      --text-dark: #2c3e50;
+      --text-medium: #566573;
+      --text-light: #90a4ae;
+      --background-gradient: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      --card-bg: rgba(255, 255, 255, 0.6);
+      --card-border: rgba(255, 255, 255, 0.7);
+      --shadow-color: rgba(110, 126, 143, 0.2);
+      
+      --risk-high-bg: #ffebee;
+      --risk-high-text: #c62828;
+      --risk-mod-bg: #fff3e0;
+      --risk-mod-text: #ef6c00;
+      --risk-low-bg: #e8f5e9;
+      --risk-low-text: #2e7d32;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background-gradient);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* --- HEADER & NAVIGATION --- */
+    header {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0 30px;
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-left .logo {
+        font-weight: 700;
+        font-size: 24px;
+        color: var(--primary-blue);
+    }
+    
+    .nav-btn {
+        background: transparent; border: none; color: var(--text-medium);
+        font-size: 24px; cursor: pointer; padding: 10px; border-radius: 50%;
+        transition: all 0.3s ease; position: relative;
+    }
+    .nav-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--text-dark); }
+    .nav-right { display: flex; align-items: center; gap: 15px; }
+
+    .dropdown-menu {
+        position: absolute; top: 60px; background: white; border-radius: 12px;
+        box-shadow: 0 8px 32px 0 var(--shadow-color); border: 1px solid var(--card-border);
+        opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.95);
+        transition: all 0.2s ease-in-out; z-index: 1001; overflow: hidden;
+    }
+    .dropdown-menu.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+    #side-menu { right: auto; left: 15px; width: 220px; }
+    #user-menu { right: 15px; width: 280px; }
+    .dropdown-menu ul { list-style: none; }
+    .dropdown-menu ul li a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; text-decoration: none;
+      color: var(--text-medium); font-weight: 500; font-size: 15px; transition: all 0.2s ease; }
+    .dropdown-menu ul li a:hover { background-color: #f5f7fa; color: var(--primary-blue); }
+    .user-info-header { padding: 15px 20px; border-bottom: 1px solid #e0e0e0; }
+    .user-info-header h4 { margin: 0; color: var(--text-dark); }
+    .user-info-header p { margin: 0; color: var(--text-light); font-size: 13px; }
+
+    /* --- MAIN CONTENT --- */
+    .main-container { padding: 30px; max-width: 1400px; margin: auto; }
+    .welcome-header { margin-bottom: 25px; }
+    .welcome-header h1 { font-size: 32px; font-weight: 700; }
+    .welcome-header p { font-size: 16px; color: var(--text-medium); }
+
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px; margin-bottom: 30px; }
+
+    .dashboard-card { background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--card-border); box-shadow: 0 8px 24px 0 var(--shadow-color);
+        border-radius: 20px; padding: 25px; display: flex; flex-direction: column;
+    }
+    .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; flex-shrink: 0; }
+    .card-header i { font-size: 20px; color: var(--primary-blue); }
+    .card-header h3 { font-size: 20px; font-weight: 600; }
+    
+    #map { height: 300px; width: 100%; border-radius: 12px; border: 1px solid var(--card-border); flex-shrink: 0; }
+
+    .location-details { flex-shrink: 0; }
+    .location-details p { margin: 8px 0; color: var(--text-medium); font-size: 15px; }
+    .location-details strong { color: var(--text-dark); font-weight: 500; }
+
+    /* --- UPGRADED DISASTER FEED UI --- */
+    #update-feed-list {
+      list-style: none;
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 320px; /* Control max height */
+      padding-right: 10px; /* For scrollbar */
+    }
+    .feed-item {
+      display: flex;
+      gap: 15px;
+      padding: 15px 0;
+      border-bottom: 1px solid #e0e6ed;
+      animation: slideIn 0.5s ease-out;
+    }
+    .feed-item:first-child { padding-top: 5px; }
+    .feed-item:last-child { border-bottom: none; }
+    
+    .feed-icon { flex-shrink: 0; width: 45px; height: 45px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; }
+    .feed-icon.high-risk { background: var(--risk-high-bg); color: var(--risk-high-text); }
+    .feed-icon.moderate-risk { background: var(--risk-mod-bg); color: var(--risk-mod-text); }
+    .feed-icon.low-risk { background: var(--risk-low-bg); color: var(--risk-low-text); }
+
+    .feed-content { flex-grow: 1; }
+    .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .feed-header h4 { font-size: 16px; font-weight: 600; color: var(--text-dark); }
+    
+    .risk-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+    .risk-high { background: var(--risk-high-text); color: white; }
+    .risk-moderate { background: var(--risk-mod-text); color: white; }
+    .risk-low { background: var(--risk-low-text); color: white; }
+    
+    .feed-content p { font-size: 14px; color: var(--text-medium); line-height: 1.5; }
+    .feed-timestamp { flex-shrink: 0; font-size: 12px; color: var(--text-light); }
+
+    /* --- UPGRADED ACTION BUTTONS --- */
+    .action-buttons-container { display: flex; gap: 25px; }
+    .action-btn { flex: 1; text-decoration: none; color: white; padding: 25px; border-radius: 20px;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+        transition: all 0.3s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .action-btn i { font-size: 36px; }
+    .action-btn span { font-size: 20px; font-weight: 600; }
+    
+    .apply-btn { background: linear-gradient(135deg, #2ecc71, #28b463); box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3); }
+    .help-btn { background: linear-gradient(135deg, #ff9966, #ff5e62); box-shadow: 0 8px 25px rgba(255, 94, 98, 0.3); }
+    
+    .action-btn:hover { transform: translateY(-8px) scale(1.03); }
+    .apply-btn:hover { box-shadow: 0 15px 35px rgba(46, 204, 113, 0.4); }
+    .help-btn:hover { box-shadow: 0 15px 35px rgba(255, 94, 98, 0.4); }
+    
+    /* --- RESPONSIVENESS --- */
+    @media (max-width: 768px) {
+        header { padding: 0 15px; } .nav-left .logo { display: none; } .main-container { padding: 20px; }
+        .dashboard-grid { grid-template-columns: 1fr; } .action-buttons-container { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <!-- ... header HTML remains the same ... -->
+    <div class="nav-left">
+      <button class="nav-btn" id="menu-btn" title="Menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="dropdown-menu" id="side-menu">
+        <ul>
+          <li><a href="{{ url_for('my_applications') }}"><i class="fa-solid fa-file-alt"></i> My Applications</a></li>
+          <li><a href="#"><i class="fa-solid fa-info-circle"></i> About Us</a></li>
+          <li><a href="#"><i class="fa-solid fa-headset"></i> Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="logo">ResQuick</div>
+    <div class="nav-right">
+      <button class="nav-btn" id="user-btn" title="Profile"><i class="fa-solid fa-user"></i></button>
+      <div class="dropdown-menu" id="user-menu">
+        <div class="user-info-header"><h4>{{ name }}</h4><p>Aadhaar: {{ aadhaar }}</p></div>
+        <ul><li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-sign-out-alt"></i> Logout</a></li></ul>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="welcome-header">
+        <h1>Hey!, {{ name }} 👋</h1>
+        <p>Here is your real-time situation overview.</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Location + Map Card -->
+      <div class="dashboard-card">
+        <div class="card-header"><i class="fa-solid fa-map-marker-alt"></i><h3>Your Live Location</h3></div>
+        <div class="location-details">
+          <p><strong>Latitude:</strong> <span id="lat">Requesting access...</span></p>
+          <p><strong>Longitude:</strong> <span id="long">Requesting access...</span></p>
+        </div>
+        <div id="map"></div>
+      </div>
+
+      <!-- Live Alert Feed Card -->
+      <div class="dashboard-card">
+        <div class="card-header"><i class="fa-solid fa-tower-broadcast"></i><h3>Live Alert Feed</h3></div>
+        <ul id="update-feed-list">
+          <!-- Feed items will be injected here by JavaScript -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons-container">
+      <a href="{{ url_for('procedure_dashboard') }}" class="action-btn apply-btn">
+        <i class="fa-solid fa-hands-holding-child"></i>
+        <span>Apply for Help</span>
+      </a>
+      <a href="{{ url_for('procedure_dashboard') }}" class="action-btn help-btn">
+        <i class="fa-solid fa-hand-holding-hand"></i>
+        <span>Help Someone</span>
+      </a>
+    </div>
+  </main>
+
+  <script>
+    // --- Interactive Dropdown Menus (JS remains the same) ---
+    const menuBtn = document.getElementById('menu-btn'), sideMenu = document.getElementById('side-menu'),
+          userBtn = document.getElementById('user-btn'), userMenu = document.getElementById('user-menu');
+    const toggleMenu = menu => menu.classList.toggle('active');
+    menuBtn.addEventListener('click', e => { e.stopPropagation(); toggleMenu(sideMenu); userMenu.classList.remove('active'); });
+    userBtn.addEventListener('click', e => { e.stopPropagation(); toggleMenu(userMenu); sideMenu.classList.remove('active'); });
+    document.addEventListener('click', () => { sideMenu.classList.remove('active'); userMenu.classList.remove('active'); });
+
+    // --- Geolocation and Map (JS remains the same) ---
+    const latSpan = document.getElementById('lat'), longSpan = document.getElementById('long');
+    let map, userMarker, isMapInitialized = false;
+    // ... (map logic is identical, so it's omitted here for brevity, but it's IN THE FULL CODE BLOCK ABOVE)
+     function addRiskZones(map, userLatLng) {
+        const redZoneCenter = [userLatLng[0] + 0.005, userLatLng[1] + 0.005];
+        L.circle(redZoneCenter, { color: 'red', fillColor: '#f03', fillOpacity: 0.4, radius: 500 }).addTo(map).bindPopup("<b>High Risk Zone:</b> Severe flooding reported.");
+        const orangeZoneCenter = [userLatLng[0] - 0.01, userLatLng[1] - 0.01];
+        L.circle(orangeZoneCenter, { color: 'orange', fillColor: '#f90', fillOpacity: 0.4, radius: 800 }).addTo(map).bindPopup("<b>Moderate Risk Zone:</b> High wind advisory.");
+        const greenZoneCenter = [userLatLng[0] + 0.02, userLatLng[1] - 0.015];
+        L.circle(greenZoneCenter, { color: 'green', fillColor: '#28a745', fillOpacity: 0.4, radius: 1000 }).addTo(map).bindPopup("<b>Safe Zone:</b> Designated evacuation center.");
+    }
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+            (position) => {
+                const lat = position.coords.latitude, long = position.coords.longitude, userLatLng = [lat, long];
+                latSpan.textContent = lat.toFixed(5); longSpan.textContent = long.toFixed(5);
+                if (!isMapInitialized) {
+                    map = L.map('map').setView(userLatLng, 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+                    userMarker = L.marker(userLatLng).addTo(map).bindPopup("Your Location").openPopup();
+                    addRiskZones(map, userLatLng);
+                    isMapInitialized = true;
+                } else {
+                    userMarker.setLatLng(userLatLng); map.panTo(userLatLng);
+                }
+            },
+            (error) => { latSpan.textContent = "Access denied"; longSpan.textContent = "Access denied"; },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+    }
+
+    // --- NEW: Advanced Live Alert Feed Logic ---
+    const updates = [
+        { risk: 'High', title: 'Flash Flood Warning', text: 'Evacuate low-lying areas. Seek higher ground immediately.', icon: 'fa-water' },
+        { risk: 'Moderate', title: 'Severe Thunderstorm', text: 'Expect high winds and hail. Secure outdoor objects.', icon: 'fa-cloud-bolt' },
+        { risk: 'Low', title: 'Seismic Activity', text: 'Minor tremors detected 50km away. No immediate threat.', icon: 'fa-house-crack' },
+        { risk: 'High', title: 'Cyclone Alert', text: 'Category 3 cyclone approaching. Move to designated shelters now.', icon: 'fa-wind' },
+        { risk: 'Moderate', title: 'Wildfire Smoke', text: 'Air Quality is poor. Limit outdoor activity and keep windows closed.', icon: 'fa-fire-flame-curved' },
+        { risk: 'Low', title: 'All Clear', text: 'No active disaster warnings for your location at this moment.', icon: 'fa-circle-check' }
+    ];
+    
+    const feedList = document.getElementById('update-feed-list');
+    let currentUpdateIndex = 0;
+    
+    function addNewAlert() {
+        const update = updates[currentUpdateIndex];
+        const riskClass = update.risk.toLowerCase();
+        
+        // Create the new list item element
+        const newItem = document.createElement('li');
+        newItem.className = 'feed-item';
+        newItem.innerHTML = `
+            <div class="feed-icon ${riskClass}-risk"><i class="fa-solid ${update.icon}"></i></div>
+            <div class="feed-content">
+                <div class="feed-header">
+                    <h4>${update.title}</h4>
+                    <span class="risk-tag risk-${riskClass}">${update.risk.toUpperCase()}</span>
+                </div>
+                <p>${update.text}</p>
+            </div>
+            <span class="feed-timestamp">Just now</span>
+        `;
+        
+        // Add the new item to the top of the list
+        feedList.prepend(newItem);
+
+        // Manage list length to prevent overflow
+        if (feedList.children.length > 5) {
+            feedList.lastElementChild.remove();
+        }
+
+        // Increment index for next alert
+        currentUpdateIndex = (currentUpdateIndex + 1) % updates.length;
+    }
+
+    // Initial load and interval
+    for(let i=0; i < 3; i++) { addNewAlert(); } // Start with 3 alerts
+    setInterval(addNewAlert, 8000); // Add a new alert every 8 seconds
+  </script>
+
+</body>
+</html>

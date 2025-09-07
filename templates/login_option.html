@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>Login Option | ResQuick</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <style>
+    /* General Reset & Setup */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      background-size: 200% 200%;
+      animation: gradient-animation 15s ease infinite;
+    }
+
+    @keyframes gradient-animation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      width: 90%;
+      max-width: 380px;
+      padding: 40px 30px;
+      text-align: center;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.45);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(110, 126, 143, 0.2);
+    }
+    
+    h2 {
+      margin-bottom: 30px;
+      color: #2c3e50;
+      font-weight: 600;
+      font-size: 28px;
+    }
+    
+    .button-wrapper { width: 100%; }
+    
+    /* 
+      NEW: Refined Button Base Styles
+      - Added position: relative for potential future pseudo-elements.
+      - Transition property now includes 'all' for ultimate smoothness.
+    */
+    button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px; /* Slightly softer radius */
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* Adds depth to text */
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Professional easing */
+    }
+
+    /* 
+      NEW: Enhanced Hover Effect
+      - Combines lifting (translateY) with a subtle scaling for a 3D "pop".
+      - The box-shadow expands into a more prominent, softer glow.
+    */
+    button:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+    
+    button:focus { outline: none; }
+    button:focus-visible { outline: 2px solid #0056b3; outline-offset: 2px; }
+    
+    /* 
+      NEW: Premium Button Colors & Multi-Layered Shadows.
+      This is the key change for a smoother, more modern look.
+    */
+    .user-btn {
+      background: linear-gradient(135deg, #5D9CEC 0%, #3B72D3 100%);
+      /* Layer 1: Subtle dark shadow for contact. Layer 2: Softer, colored ambient glow. */
+      box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .user-btn:hover {
+      box-shadow: 0 10px 20px rgba(93, 156, 236, 0.3), 0 6px 6px rgba(93, 156, 236, 0.2);
+    }
+
+    .official-btn {
+      background: linear-gradient(135deg, #4854c7 0%, #2c358b 100%);
+      box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .official-btn:hover {
+      box-shadow: 0 10px 20px rgba(72, 84, 199, 0.3), 0 6px 6px rgba(72, 84, 199, 0.2);
+    }
+
+    button i {
+        margin-right: 12px;
+        font-size: 18px;
+    }
+    
+    .separator {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #566573;
+      margin: 25px 0;
+      font-weight: 400;
+    }
+    .separator::before,
+    .separator::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid rgba(133, 146, 158, 0.5);
+    }
+    .separator:not(:empty)::before { margin-right: .75em; }
+    .separator:not(:empty)::after { margin-left: .75em; }
+    
+    form { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome to ResQuick</h2>
+    <div class="button-wrapper">
+      <form action="/user_login">
+        <button type="submit" class="user-btn">
+          <i class="fa-solid fa-user"></i>
+          Continue as User
+        </button>
+      </form>
+      
+      <div class="separator">or</div>
+      
+      <form action="/officials_login">
+        <button type="submit" class="official-btn">
+          <i class="fa-solid fa-user-shield"></i>
+          Continue as Official
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

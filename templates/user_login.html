@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>User Login | ResQuick</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <style>
+    :root {
+      --primary-blue: #3B72D3;
+      --primary-blue-light: #5D9CEC;
+      --text-dark: #2c3e50;
+      --text-medium: #34495e;
+      --text-light: #566573;
+      --border-color: #d2dae2;
+      --placeholder-color: #90a4ae;
+      --background-light: #fdfdfd;
+      --error-bg: #ffebee;
+      --error-text: #c62828;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2); 
+      padding: 20px;
+    }
+    
+    .container {
+        position: relative;
+        width: 90%;
+        max-width: 420px;
+        padding: 45px 35px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 8px 32px 0 rgba(110, 126, 143, 0.2);
+    }
+    
+    .back-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        color: var(--text-light);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+        color: var(--text-dark);
+        transform: scale(1.15);
+    }
+    
+    h2 { 
+      text-align: center; 
+      margin-bottom: 10px; 
+      color: var(--text-dark); 
+      font-weight: 700; 
+      font-size: 32px; 
+    }
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--text-light);
+      font-size: 15px;
+    }
+
+    .flash-messages { margin-bottom: 20px; }
+    .flash-error {
+        padding: 12px 15px;
+        border-radius: 8px;
+        background-color: var(--error-bg);
+        color: var(--error-text);
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        border: 1px solid var(--error-text);
+    }
+    
+    form { width: 100%; }
+
+    /* ### UPDATED: SIMPLE INPUT STYLE (like officials_login) ### */
+    .input-group {
+        position: relative;
+        margin-bottom: 25px;
+    }
+    .input-group .icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--placeholder-color);
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 14px 45px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--background-light);
+      font-size: 16px;
+      color: var(--text-dark);
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease;
+    }
+    .input-field::placeholder { 
+        color: var(--placeholder-color);
+    }
+    .input-field:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 4px rgba(59, 114, 211, 0.2);
+        background: #fff;
+    }
+    .input-field:focus ~ .icon {
+        color: var(--primary-blue);
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--placeholder-color);
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    .toggle-password:hover {
+      color: var(--text-medium);
+    }
+    .input-field:focus ~ .toggle-password {
+      color: var(--primary-blue);
+    }
+
+    .login-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-top: 15px;
+        background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    .login-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(93, 156, 236, 0.3), 0 8px 8px rgba(93, 156, 236, 0.22);
+    }
+
+    .toggle-text { text-align: center; font-size: 15px; margin-top: 25px; color: var(--text-light); }
+    .toggle-text a { color: var(--primary-blue); text-decoration: none; font-weight: 600; }
+    .toggle-text a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="{{ url_for('login_option') }}" class="back-btn" title="Go Back"><i class="fa-solid fa-arrow-left"></i></a>
+
+    <!-- LOGIN FORM -->
+    <form method="POST" action="{{ url_for('user_login') }}">
+      <h2>User Login</h2>
+      <p class="subtitle">Welcome back! Please enter your details.</p>
+
+      <!-- Flask Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="flash-error">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- ### UPDATED INPUT FIELDS ### -->
+      <div class="input-group">
+        <input id="aadhaar" class="input-field" type="text" name="aadhaar" placeholder="Aadhaar Number" required>
+        <i class="fa-solid fa-id-card icon"></i>
+      </div>
+      
+      <div class="input-group">
+        <input id="password" class="input-field" type="password" name="password" placeholder="Password" required>
+        <i class="fa-solid fa-lock icon"></i>
+        <span id="toggle-password" class="toggle-password">
+            <i class="fa-solid fa-eye"></i>
+        </span>
+      </div>
+
+      <button type="submit" class="login-btn">
+        Login 
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+      </button>
+
+      <div class="toggle-text">New here? <a href="{{ url_for('signup') }}">Sign up</a></div>
+    </form>
+  </div>
+
+  <script>
+    const passwordInput = document.getElementById('password');
+    const togglePasswordButton = document.getElementById('toggle-password');
+    const toggleIcon = togglePasswordButton.querySelector('i');
+
+    togglePasswordButton.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        if (type === 'password') {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        } else {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        }
+    });
+  </script>
+</body>
+</html>
